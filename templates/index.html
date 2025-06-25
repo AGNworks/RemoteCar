@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Robot Control</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        #videoFeed {
+            width: 100%;
+            max-width: 640px;
+            border: 2px solid #333;
+            border-radius: 5px;
+            margin: 20px auto;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        .key {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            margin: 5px;
+            background-color: #ddd;
+            border-radius: 5px;
+            line-height: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+        }
+        .key.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .instructions {
+            margin-top: 20px;
+            text-align: left;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Robot Control Panel</h1>
+
+        <img id="videoFeed" src="/video_feed">
+
+        <div class="controls">
+            <div>
+                <div class="key" id="keyW">W</div>
+            </div>
+            <div>
+                <div class="key" id="keyA">A</div>
+                <div class="key" id="keyS">S</div>
+                <div class="key" id="keyD">D</div>
+            </div>
+            <div>
+                <div class="key" id="keyQ">Q (Speed +)</div>
+                <div class="key" id="keySpace">SPACE (Stop)</div>
+                <div class="key" id="keyE">E (Speed -)</div>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>Controls:</h3>
+            <ul>
+                <li><strong>W</strong> - Move Forward</li>
+                <li><strong>A</strong> - Turn Left</li>
+                <li><strong>S</strong> - Move Backward</li>
+                <li><strong>D</strong> - Turn Right</li>
+                <li><strong>Space</strong> - Stop</li>
+                <li><strong>Q</strong> - Increase Speed</li>
+                <li><strong>E</strong> - Decrease Speed</li>
+            </ul>
+            <p>You can also use your keyboard directly!</p>
+        </div>
+    </div>
+
+    <script>
+        const ws = new WebSocket(`ws://${window.location.host}/ws`);
+
+        // Handle button clicks
+        document.getElementById('keyW').addEventListener('mousedown', () => sendCommand('KeyW'));
+        document.getElementById('keyW').addEventListener('mouseup', () => sendCommand('KeySpace'));
+        document.getElementById('keyW').addEventListener('mouseleave', () => sendCommand('KeySpace'));
+
+        document.getElementById('keyA').addEventListener('mousedown', () => sendCommand('KeyA'));
+        document.getElementById('keyA').addEventListener('mouseup', () => sendCommand('KeySpace'));
+        document.getElementById('keyA').addEventListener('mouseleave', () => sendCommand('KeySpace'));
+
+        document.getElementById('keyS').addEventListener('mousedown', () => sendCommand('KeyS'));
+        document.getElementById('keyS').addEventListener('mouseup', () => sendCommand('KeySpace'));
+        document.getElementById('keyS').addEventListener('mouseleave', () => sendCommand('KeySpace'));
+
+        document.getElementById('keyD').addEventListener('mousedown', () => sendCommand('KeyD'));
+        document.getElementById('keyD').addEventListener('mouseup', () => sendCommand('KeySpace'));
+        document.getElementById('keyD').addEventListener('mouseleave', () => sendCommand('KeySpace'));
+
+        document.getElementById('keyQ').addEventListener('click', () => sendCommand('KeyQ'));
+        document.getElementById('keyE').addEventListener('click', () => sendCommand('KeyE'));
+        document.getElementById('keySpace').addEventListener('click', () => sendCommand('KeySpace'));
+
+        // Handle keyboard events
+        document.addEventListener('keydown', (e) => {
+            if (['w', 'a', 's', 'd', 'q', 'e', ' '].includes(e.key.toLowerCase())) {
+                const key = e.key === ' ' ? 'Space' : e.key.toUpperCase();
+                document.getElementById(`key${key}`).classList.add('active');
+
+                let command;
+                switch(e.key.toLowerCase()) {
+                    case 'w': command = 'KeyW'; break;
+                    case 'a': command = 'KeyA'; break;
+                    case 's': command = 'KeyS'; break;
+                    case 'd': command = 'KeyD'; break;
+                    case 'q': command = 'KeyQ'; break;
+                    case 'e': command = 'KeyE'; break;
+                    case ' ': command = 'KeySpace'; break;
+                }
+                sendCommand(command);
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (['w', 'a', 's', 'd'].includes(e.key.toLowerCase())) {
+                const key = e.key === ' ' ? 'Space' : e.key.toUpperCase();
+                document.getElementById(`key${key}`).classList.remove('active');
+                sendCommand('KeySpace');
+            }
+        });
+
+        function sendCommand(command) {
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(command);
+            }
+        }
+    </script>
+</body>
+</html>
