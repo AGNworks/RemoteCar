@@ -10,6 +10,7 @@ from fastapi.responses import HTMLResponse, StreamingResponse
 
 from app import raspberry_board
 from app.camera import camera
+from app.params import SPEED
 from app.raspi_functions import backward, forward, stop, turn_left, turn_right
 
 templates = Jinja2Templates(directory="templates")
@@ -17,6 +18,8 @@ templates = Jinja2Templates(directory="templates")
 active_connections: Dict[str, WebSocket] = {}
 
 main_router = APIRouter()
+
+speed = SPEED
 
 @main_router.get("/", response_class=HTMLResponse)
 async def index(request: Request):
@@ -60,12 +63,13 @@ async def websocket_endpoint(websocket: WebSocket):
                 stop()
             elif data == "KeyQ":
                 # Example: Increase speed
+                global speed
                 speed = min(100, speed + 10)
                 raspberry_board.Ap.ChangeDutyCycle(speed)
                 raspberry_board.Bp.ChangeDutyCycle(speed)
             elif data == "KeyE":
                 # Example: Decrease speed
-                speed = max(0, speed - 10)
+                speed = max(5, speed - 10)
                 raspberry_board.Ap.ChangeDutyCycle(speed)
                 raspberry_board.Bp.ChangeDutyCycle(speed)
 
