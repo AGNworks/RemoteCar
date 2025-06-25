@@ -25,7 +25,7 @@ def cleanup():
     Clean before finish session.
     """
 
-    await stop()
+    stop()
     GPIO.cleanup()
     camera.shutdown()
 
@@ -52,7 +52,7 @@ async def backward():
     GPIO.output(Board.Apin2, GPIO.LOW)
     print("Moving Backward")
 
-async def stop():
+def stop():
     """
     Stopping
     """
