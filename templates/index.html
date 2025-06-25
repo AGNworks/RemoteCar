@@ -142,7 +142,7 @@
         });
 
         document.addEventListener('keyup', (e) => {
-            if (['w', 'a', 's', 'd'].includes(e.key.toLowerCase())) {
+            if (['w', 'a', 's', 'd', 'q', 'e', ' '].includes(e.key.toLowerCase())) {
                 const key = e.key === ' ' ? 'Space' : e.key.toUpperCase();
                 document.getElementById(`key${key}`).classList.remove('active');
                 sendCommand('KeySpace');

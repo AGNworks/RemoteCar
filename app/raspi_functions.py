@@ -39,7 +39,7 @@ async def forward():
     GPIO.output(Board.Apin2, GPIO.HIGH)
     GPIO.output(Board.Bpin1, GPIO.LOW)
     GPIO.output(Board.Bpin2, GPIO.HIGH)
-    print("Moving Forward")
+    # print("Moving Forward")
 
 async def backward():
     """
@@ -50,7 +50,7 @@ async def backward():
     GPIO.output(Board.Bpin2, GPIO.LOW)
     GPIO.output(Board.Apin1, GPIO.HIGH)
     GPIO.output(Board.Apin2, GPIO.LOW)
-    print("Moving Backward")
+    # print("Moving Backward")
 
 def stop():
     """
@@ -61,7 +61,7 @@ def stop():
     GPIO.output(Board.Apin2, GPIO.HIGH)
     GPIO.output(Board.Bpin1, GPIO.HIGH)
     GPIO.output(Board.Bpin2, GPIO.HIGH)
-    print("Stopping")
+    # print("Stopping")
 
 async def turn_left():
     """
@@ -72,7 +72,7 @@ async def turn_left():
     GPIO.output(Board.Bpin2, GPIO.HIGH)  # Right side forward
     GPIO.output(Board.Apin1, GPIO.HIGH)
     GPIO.output(Board.Apin2, GPIO.LOW)   # Left side backward
-    print("Turning Left")
+    # print("Turning Left")
 
 async def turn_right():
     """
@@ -83,4 +83,4 @@ async def turn_right():
     GPIO.output(Board.Apin2, GPIO.HIGH)  # Left side forward
     GPIO.output(Board.Bpin1, GPIO.HIGH)
     GPIO.output(Board.Bpin2, GPIO.LOW)   # Right side backward
-    print("Turning Right")
+    # print("Turning Right")
