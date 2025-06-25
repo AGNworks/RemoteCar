@@ -11,7 +11,7 @@ from app.camera import camera
 from app.board import Board
 
 
-async def shutdownrpi():
+def shutdownrpi():
     """
     Used to shutdown the system with a button, connected to the board.
     """
