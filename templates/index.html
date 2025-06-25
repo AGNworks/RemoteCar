@@ -6,9 +6,16 @@
         body {
             font-family: Arial, sans-serif;
             text-align: center;
-            background-color: #f0f0f0;
             margin: 0;
             padding: 20px;
+            /* Background image settings */
+            background-image: url('/static/backg.jpg');
+            background-size: cover;  /* Cover the entire page */
+            background-position: center;  /* Center the image */
+            background-attachment: fixed;  /* Fixed while scrolling */
+            background-repeat: no-repeat;  /* Don't repeat the image */
+            /* Add a semi-transparent overlay for better text readability */
+            position: relative;
         }
         .container {
             max-width: 800px;
