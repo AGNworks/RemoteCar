@@ -25,7 +25,7 @@ def cleanup():
     Clean before finish session.
     """
 
-    stop()
+    await stop()
     GPIO.cleanup()
     camera.shutdown()
 
