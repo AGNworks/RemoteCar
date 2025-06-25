@@ -57,7 +57,7 @@ async def websocket_endpoint(websocket: WebSocket):
             elif data == "KeyD":
                 await turn_right()
             elif data == "KeySpace":
-                await stop()
+                stop()
             elif data == "KeyQ":
                 # Example: Increase speed
                 speed = min(100, speed + 10)
