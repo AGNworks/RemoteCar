@@ -11,7 +11,7 @@ from app.camera import camera
 from app.board import Board
 
 
-def shutdownrpi():
+def shutdownrpi(channel):
     """
     Used to shutdown the system with a button, connected to the board.
     """
