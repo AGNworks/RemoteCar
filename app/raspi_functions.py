@@ -73,10 +73,14 @@ async def turn_right():
     GPIO.output(Board.Bpin2, GPIO.LOW)   # Right side backward
     # print("Turning Right")
 
-def set_motor_speeds(left_speed, right_speed):
+def set_motor_speeds(left_speed: float, right_speed: float) -> bool:
     """
     Set the motor speeds.
     """
+
+    if left_speed == 0 and right_speed == 0:
+        stop()
+        return False
 
     # Get the speed to set
     if abs(left_speed) > MAX_SPEED:
@@ -111,3 +115,5 @@ def set_motor_speeds(left_speed, right_speed):
     else:
         GPIO.output(Board.Bpin1, GPIO.LOW)
         GPIO.output(Board.Bpin2, GPIO.HIGH)  # Right side forward
+
+    return True
