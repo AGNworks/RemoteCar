@@ -8,13 +8,11 @@
             text-align: center;
             margin: 0;
             padding: 20px;
-            /* Background image settings */
             background-image: url('/static/backg.jpg');
-            background-size: cover;  /* Cover the entire page */
-            background-position: center;  /* Center the image */
-            background-attachment: fixed;  /* Fixed while scrolling */
-            background-repeat: no-repeat;  /* Don't repeat the image */
-            /* Add a semi-transparent overlay for better text readability */
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
             position: relative;
         }
         .container {
@@ -51,12 +49,39 @@
             background-color: #4CAF50;
             color: white;
         }
+        .key.wide {
+            width: 120px;
+        }
         .instructions {
             margin-top: 20px;
             text-align: left;
             padding: 10px;
             background-color: #f9f9f9;
             border-radius: 5px;
+        }
+        .speed-display {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+        .speed-meter {
+            width: 45%;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+        }
+        .speed-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        .speed-label {
+            font-size: 16px;
+            color: #555;
+        }
+        .base-speed {
+            margin: 15px 0;
+            font-size: 18px;
         }
     </style>
 </head>
@@ -65,6 +90,21 @@
         <h1>Robot Control Panel</h1>
 
         <img id="videoFeed" src="/video_feed">
+
+        <div class="speed-display">
+            <div class="speed-meter">
+                <div class="speed-label">Left Wheel Speed</div>
+                <div class="speed-value" id="leftSpeed">0</div>
+            </div>
+            <div class="speed-meter">
+                <div class="speed-label">Right Wheel Speed</div>
+                <div class="speed-value" id="rightSpeed">0</div>
+            </div>
+        </div>
+
+        <div class="base-speed">
+            Base Speed: <span id="baseSpeed">50</span>%
+        </div>
 
         <div class="controls">
             <div>
@@ -76,9 +116,9 @@
                 <div class="key" id="keyD">D</div>
             </div>
             <div>
-                <div class="key" id="keyQ">Q (Speed +)</div>
-                <div class="key" id="keySpace">SPACE (Stop)</div>
-                <div class="key" id="keyE">E (Speed -)</div>
+                <div class="key wide" id="keyQ">Q (Speed +)</div>
+                <div class="key wide" id="keySpace">SPACE (Stop)</div>
+                <div class="key wide" id="keyE">E (Speed -)</div>
             </div>
         </div>
 
@@ -86,74 +126,126 @@
             <h3>Controls:</h3>
             <ul>
                 <li><strong>W</strong> - Move Forward</li>
-                <li><strong>A</strong> - Turn Left</li>
+                <li><strong>W+A</strong> - Move Forward + Turn Left</li>
+                <li><strong>W+D</strong> - Move Forward + Turn Right</li>
                 <li><strong>S</strong> - Move Backward</li>
-                <li><strong>D</strong> - Turn Right</li>
+                <li><strong>S+A</strong> - Move Backward + Turn Left</li>
+                <li><strong>S+D</strong> - Move Backward + Turn Right</li>
+                <li><strong>A</strong> - Turn Left (in place)</li>
+                <li><strong>D</strong> - Turn Right (in place)</li>
                 <li><strong>Space</strong> - Stop</li>
-                <li><strong>Q</strong> - Increase Speed</li>
-                <li><strong>E</strong> - Decrease Speed</li>
+                <li><strong>Q</strong> - Increase Base Speed</li>
+                <li><strong>E</strong> - Decrease Base Speed</li>
             </ul>
-            <p>You can also use your keyboard directly!</p>
+            <p>You can press multiple keys at the same time for combined movement!</p>
         </div>
     </div>
 
     <script>
         const ws = new WebSocket(`ws://${window.location.host}/ws`);
+        let baseSpeed = 50;
 
-        // Handle button clicks
-        document.getElementById('keyW').addEventListener('mousedown', () => sendCommand('KeyW'));
-        document.getElementById('keyW').addEventListener('mouseup', () => sendCommand('KeySpace'));
-        document.getElementById('keyW').addEventListener('mouseleave', () => sendCommand('KeySpace'));
+        // Update speed display
+        function updateSpeedDisplay(left, right) {
+            document.getElementById('leftSpeed').textContent = Math.round(left);
+            document.getElementById('rightSpeed').textContent = Math.round(right);
+            document.getElementById('baseSpeed').textContent = baseSpeed;
+        }
 
-        document.getElementById('keyA').addEventListener('mousedown', () => sendCommand('KeyA'));
-        document.getElementById('keyA').addEventListener('mouseup', () => sendCommand('KeySpace'));
-        document.getElementById('keyA').addEventListener('mouseleave', () => sendCommand('KeySpace'));
+        // Handle WebSocket messages
+        ws.onmessage = function(event) {
+            if (event.data.startsWith("SPEED:")) {
+                const parts = event.data.split(":");
+                const leftSpeed = parseFloat(parts[1]);
+                const rightSpeed = parseFloat(parts[2]);
+                updateSpeedDisplay(leftSpeed, rightSpeed);
+            }
+        };
 
-        document.getElementById('keyS').addEventListener('mousedown', () => sendCommand('KeyS'));
-        document.getElementById('keyS').addEventListener('mouseup', () => sendCommand('KeySpace'));
-        document.getElementById('keyS').addEventListener('mouseleave', () => sendCommand('KeySpace'));
+        // Track currently pressed keys
+        const activeKeys = new Set();
 
-        document.getElementById('keyD').addEventListener('mousedown', () => sendCommand('KeyD'));
-        document.getElementById('keyD').addEventListener('mouseup', () => sendCommand('KeySpace'));
-        document.getElementById('keyD').addEventListener('mouseleave', () => sendCommand('KeySpace'));
+        // Send key press/release events
+        function sendKeyEvent(key, isDown) {
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(`Key${key}${isDown ? 'Down' : 'Up'}`);
+            }
 
-        document.getElementById('keyQ').addEventListener('click', () => sendCommand('KeyQ'));
-        document.getElementById('keyE').addEventListener('click', () => sendCommand('KeyE'));
-        document.getElementById('keySpace').addEventListener('click', () => sendCommand('KeySpace'));
+            // Update base speed display if Q/E pressed
+            if (isDown && (key === 'Q' || key === 'E')) {
+                if (key === 'Q') baseSpeed = Math.min(100, baseSpeed + 5);
+                if (key === 'E') baseSpeed = Math.max(0, baseSpeed - 5);
+                document.getElementById('baseSpeed').textContent = baseSpeed;
+            }
+        }
+
+        // Handle button mouse events
+        function setupButton(buttonId, key) {
+            const button = document.getElementById(buttonId);
+
+            button.addEventListener('mousedown', () => {
+                activeKeys.add(key);
+                button.classList.add('active');
+                sendKeyEvent(key, true);
+            });
+
+            button.addEventListener('mouseup', () => {
+                activeKeys.delete(key);
+                button.classList.remove('active');
+                sendKeyEvent(key, false);
+            });
+
+            button.addEventListener('mouseleave', () => {
+                if (activeKeys.has(key)) {
+                    activeKeys.delete(key);
+                    button.classList.remove('active');
+                    sendKeyEvent(key, false);
+                }
+            });
+        }
+
+        // Setup all buttons
+        setupButton('keyW', 'W');
+        setupButton('keyA', 'A');
+        setupButton('keyS', 'S');
+        setupButton('keyD', 'D');
+        setupButton('keyQ', 'Q');
+        setupButton('keyE', 'E');
+        setupButton('keySpace', 'Space');
 
         // Handle keyboard events
         document.addEventListener('keydown', (e) => {
-            if (['w', 'a', 's', 'd', 'q', 'e', ' '].includes(e.key.toLowerCase())) {
-                const key = e.key === ' ' ? 'Space' : e.key.toUpperCase();
-                document.getElementById(`key${key}`).classList.add('active');
+            const keyMap = {
+                'w': 'W', 'a': 'A', 's': 'S', 'd': 'D',
+                'q': 'Q', 'e': 'E', ' ': 'Space'
+            };
 
-                let command;
-                switch(e.key.toLowerCase()) {
-                    case 'w': command = 'KeyW'; break;
-                    case 'a': command = 'KeyA'; break;
-                    case 's': command = 'KeyS'; break;
-                    case 'd': command = 'KeyD'; break;
-                    case 'q': command = 'KeyQ'; break;
-                    case 'e': command = 'KeyE'; break;
-                    case ' ': command = 'KeySpace'; break;
+            const key = keyMap[e.key.toLowerCase()];
+            if (key && !activeKeys.has(key)) {
+                activeKeys.add(key);
+                if (key !== 'Q' && key !== 'E') {  // Don't highlight Q/E as they're momentary
+                    document.getElementById(`key${key}`).classList.add('active');
                 }
-                sendCommand(command);
+                sendKeyEvent(key, true);
             }
         });
 
         document.addEventListener('keyup', (e) => {
-            if (['w', 'a', 's', 'd', 'q', 'e', ' '].includes(e.key.toLowerCase())) {
-                const key = e.key === ' ' ? 'Space' : e.key.toUpperCase();
+            const keyMap = {
+                'w': 'W', 'a': 'A', 's': 'S', 'd': 'D',
+                'q': 'Q', 'e': 'E', ' ': 'Space'
+            };
+
+            const key = keyMap[e.key.toLowerCase()];
+            if (key && activeKeys.has(key)) {
+                activeKeys.delete(key);
                 document.getElementById(`key${key}`).classList.remove('active');
-                sendCommand('KeySpace');
+                sendKeyEvent(key, false);
             }
         });
 
-        function sendCommand(command) {
-            if (ws.readyState === WebSocket.OPEN) {
-                ws.send(command);
-            }
-        }
+        // Initialize speed display
+        updateSpeedDisplay(0, 0);
     </script>
 </body>
 </html>
