@@ -2,10 +2,21 @@
 Board class.
 """
 
+import os
+import time
 import RPi.GPIO as GPIO
 
 from app.params import SPEED
 
+
+def shutdownrpi(channel):
+    """
+    Used to shutdown the system with a button, connected to the board.
+    """
+
+    print("Shutting down")
+    time.sleep(5)
+    os.system("sudo shutdown -h now")
 
 class Board:
     """
@@ -22,6 +33,16 @@ class Board:
     stateLED = 25
 
     def __init__(self):
+        # Initialize GPIO
+        GPIO.setmode(GPIO.BCM)
+
+        ## SHUTDOWN
+        # Setup shutdown button
+        GPIO.setup(21, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+        # Add Shutdown event
+        GPIO.add_event_detect(21, GPIO.FALLING, callback=shutdownrpi, bouncetime=2000)
+
         # Setup GPIO pins
         GPIO.setup(self.Apin1, GPIO.OUT)
         GPIO.setup(self.Apin2, GPIO.OUT)
@@ -36,3 +57,7 @@ class Board:
         self.Bp = GPIO.PWM(self.Ben, 1000)  # Right side
         self.Ap.start(SPEED)
         self.Bp.start(SPEED)
+
+
+# Set up the raspberry board
+raspberry_board = Board()

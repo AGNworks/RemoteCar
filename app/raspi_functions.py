@@ -2,25 +2,11 @@
 Functions for controlling.
 """
 
-import time
-import os
-
 import RPi.GPIO as GPIO
 
 from app.camera import camera
-from app.board import Board
-from app import raspberry_board
+from app.board import Board, raspberry_board
 from app.params import MAX_SPEED, MIN_SPEED
-
-
-def shutdownrpi(channel):
-    """
-    Used to shutdown the system with a button, connected to the board.
-    """
-
-    print("Shutting down")
-    time.sleep(5)
-    os.system("sudo shutdown -h now")
 
 def cleanup():
     """
